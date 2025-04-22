@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from pymongo import MongoClient
+from validator import PokemonSchema
 import os
 
 # Initialize Flask app

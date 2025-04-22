@@ -1,14 +1,38 @@
 from marshmallow import Schema, fields, validate
 
+POKEMON_TYPES = [
+    "Bug",
+    "Dragon",
+    "Electric",
+    "Fighting",
+    "Fire",
+    "Flying",
+    "Ghost",
+    "Grass",
+    "Ground",
+    "Ice",
+    "Normal",
+    "Poison",
+    "Psychic",
+    "Rock",
+    "Water",
+]
 
 class BaseStatsSchema(Schema):
-  hp = fields.Int(required=True, validate=validate.Range(min=1))
-  attack = fields.Int(required=True, validate=validate.Range(min=1))
-  defense = fields.Int(required=True)
-  speed = fields.Int(required=True))
+    hp = fields.Int(required=True, validate=validate.Range(min=1))
+    attack = fields.Int(required=True, validate=validate.Range(min=1))
+    defense = fields.Int(required=True)
+    speed = fields.Int(required=True)
 
-  class PokemonSchema(Schema):
+
+class PokemonSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1))
-    type =
+    type = fields.List(
+        fields.Str(validate=validate.OneOf(POKEMON_TYPES)),
+        required=True,
+        validate=validate.Length(min=1, max=2),
+    )
+    stats = fields.Nested(BaseStatsSchema, required=True)
 
-
+    description = fields.Str(required=False, validate=validate.Length(min=1))
+    pokedex_number = fields.Int(required=True, validate=validate.Range(min=1))
