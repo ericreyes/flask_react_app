@@ -36,3 +36,13 @@ class PokemonSchema(Schema):
 
     description = fields.Str(required=False, validate=validate.Length(min=1))
     pokedex_number = fields.Int(required=True, validate=validate.Range(min=1))
+
+class PaginationSchema(Schema):
+    limit = fields.Int(required=False, validate=validate.Range(min=1, max=100))
+    offset = fields.Int(required=False, validate=validate.Range(min=1, max=1000))
+    sort = fields.Str(required=False, validate=validate.OneOf(["asc", "desc"]))
+    sort_by = fields.Str(required=False, validate=validate.OneOf(["name", "pokedex_number"]))
+
+# class PokemonFilterSchema(Schema):
+
+pagination_schema = PaginationSchema()
