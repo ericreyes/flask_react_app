@@ -61,3 +61,16 @@ def server_error(e):
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
 
+
+
+
+
+
+# Method | Route | Description
+# GET | /api/pokemon | List all Pokémon (paginated)
+# GET | /api/pokemon/<id> | Get one Pokémon
+# POST | /api/pokemon | Create new Pokémon
+# PUT | /api/pokemon/<id> | Update Pokémon
+# DELETE | /api/pokemon/<id> | Delete Pokémon
+# GET | /api/pokemon/search?q= | Search by name/type
+
