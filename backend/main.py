@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
+from pymongo import MongoClient
 import os
 
 # Initialize Flask app
@@ -9,7 +10,11 @@ app = Flask(__name__)
 CORS(app)
 
 # Configuration
+
+# db init
+client = MongoClient("mongodb://localhost:27017/")
 app.config['DEBUG'] = True
+db = client["pokedex"]
 
 # In production, static files will be served from the React build folder
 REACT_BUILD_FOLDER = os.path.abspath('../frontend/build')
@@ -17,9 +22,13 @@ REACT_BUILD_FOLDER = os.path.abspath('../frontend/build')
 @app.route('/api/test', methods=['GET'])
 def test():
     """Test endpoint that returns a simple JSON response"""
+    cursor = db.pokemon.find({}, {"_id": 0})
+    pokemon_data = list(cursor)
+
     return jsonify({
         'message': 'Flask API is working!',
-        'status': 'success'
+        'status': 'success',
+        'data': pokemon_data,
     })
 
 # Route to serve React app - for production use
