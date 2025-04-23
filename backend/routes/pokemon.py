@@ -1,7 +1,7 @@
 from flask import jsonify, send_from_directory, request, Blueprint
 from marshmallow import ValidationError
+from flask.views import MethodView
 import os
-
 
 
 from bson.regex import Regex
@@ -15,36 +15,38 @@ pokemon_api = Blueprint("pokemon_api", __name__)
 REACT_BUILD_FOLDER = os.path.abspath("../../frontend/build")
 
 
-@pokemon_api.route("pokemon", methods=["GET"])
-def get_all_pokemon():
-    """Get all pokemon with schema validation"""
-    try:
-        args = pagination_schema.load(request.args)
-    except ValidationError as e:
-        return (
-            jsonify({"message": "ValidationError", "status": "error", "error": str(e)}),
-            400,
-        )
+class PokemonListAPI(MethodView):
+    def get(self):
+        """GET /api/pokemon - List Pokémon with pagination"""
+        try:
+            args = pagination_schema.load(request.args)
+        except ValidationError as e:
+            return (
+                jsonify(
+                    {"message": "ValidationError", "status": "error", "error": str(e)}
+                ),
+                400,
+            )
 
-    limit = int(args.get("limit", 10))
-    offset = int(args.get("offset", 0))
-    cursor = db.pokemon.find({}, {"_id": 0}).skip(offset).limit(limit)
-    pokemon_data = list(cursor)
-    return (
-        jsonify(
-            {
-                "message": "PokemonList retrieved and validated with many",
-                "status": "success",
-                "data": pokemon_schema.load(data=pokemon_data, many=True),
-                "meta": {
-                    "offset": offset,
-                    "limit": limit,
-                    "total_count": db.pokemon.count_documents({}),
-                },
-            }
-        ),
-        200,
-    )
+        limit = int(args.get("limit", 10))
+        offset = int(args.get("offset", 0))
+        cursor = db.pokemon.find({}, {"_id": 0}).skip(offset).limit(limit)
+        pokemon_data = list(cursor)
+        return (
+            jsonify(
+                {
+                    "message": "PokemonList retrieved and validated with many",
+                    "status": "success",
+                    "data": pokemon_schema.load(data=pokemon_data, many=True),
+                    "meta": {
+                        "offset": offset,
+                        "limit": limit,
+                        "total_count": db.pokemon.count_documents({}),
+                    },
+                }
+            ),
+            200,
+        )
 
 
 # Route to serve React app - for production use
@@ -82,6 +84,9 @@ def server_error(e):
         500,
     )
 
+
+pokemon_list_view = PokemonListAPI.as_view("pokemon_list_api")
+pokemon_api.add_url_rule("pokemon", view_func=pokemon_list_view, methods=["GET"])
 
 
 # Method | Route | Description
