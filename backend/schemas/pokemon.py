@@ -32,7 +32,7 @@ class PokemonSchema(Schema):
         required=True,
         validate=validate.Length(min=1, max=2),
     )
-    stats = fields.Nested(BaseStatsSchema, required=True)
+    base_stats = fields.Nested(BaseStatsSchema, required=True)
 
     description = fields.Str(required=False, validate=validate.Length(min=1))
     pokedex_number = fields.Int(required=True, validate=validate.Range(min=1))
@@ -46,3 +46,4 @@ class PaginationSchema(Schema):
 # class PokemonFilterSchema(Schema):
 
 pagination_schema = PaginationSchema()
+pokemon_schema = PokemonSchema()

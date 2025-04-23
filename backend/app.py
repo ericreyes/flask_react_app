@@ -1,9 +1,14 @@
 from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
 from pymongo import MongoClient
-from validator import PokemonSchema, pagination_schema
 from marshmallow import ValidationError
 import os
+
+
+
+from bson.regex import Regex
+from schemas.pokemon import pagination_schema, pokemon_schema
+# from db import db
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -19,7 +24,7 @@ app.config["DEBUG"] = True
 db = client["pokedex"]
 
 # In production, static files will be served from the React build folder
-REACT_BUILD_FOLDER = os.path.abspath("../frontend/build")
+REACT_BUILD_FOLDER = os.path.abspath("../../frontend/build")
 
 
 @app.route("/api/pokemon", methods=["GET"])
@@ -40,9 +45,14 @@ def get_all_pokemon():
     return (
         jsonify(
             {
-                "message": "PokemonList retrieved",
+                "message": "PokemonList retrieved and validated with many",
                 "status": "success",
-                "data": pokemon_data,
+                "data": pokemon_schema.load(data=pokemon_data, many=True),
+                "meta": {
+                    "offset": offset,
+                    "limit": limit,
+                    "total_count": db.pokemon.count_documents({}),
+                }
             }
         ),
         200,
