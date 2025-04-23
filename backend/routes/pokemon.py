@@ -48,6 +48,70 @@ class PokemonListAPI(MethodView):
             200,
         )
 
+    def post(self):
+        """POST /api/pokemon - create new pokemon"""
+        try:
+            data = request.get_json()
+            validated_data = pokemon_schema.load(data)
+
+        except ValidationError as e:
+            return (
+                jsonify(
+                    {
+                        "message": "ValidationError",
+                        "status": "error",
+                        "error": str(e) + "Invalid pokemon data format",
+                    }
+                ),
+                400,  # bad request status code
+            )
+
+        existing_pokemon = db.pokemon.find_one({"name": validated_data["name"]})
+        if existing_pokemon:
+            return (
+                jsonify(
+                    {
+                        "message": "PokemonAlreadyExists",
+                        "status": "error",
+                        "error": "Pokemon with this name already exists",
+                    }
+                ),
+                409,  # conflict status code
+            )
+
+        validated_data["pokedex_number"] = db.pokemon.count_documents({}) + 1
+        validated_data["_id"] = validated_data["pokedex_number"]
+        db.pokemon.insert_one(validated_data)
+        return (
+            jsonify(
+                {
+                    "message": "Pokemon created",
+                    "status": "success",
+                    "data": validated_data,
+                }
+            )
+        )
+
+
+class PokemonDetailAPI(MethodView):
+    def get(self, id):
+        """GET /api/pokemon/<id> - Get Pokemon by ID"""
+        pass
+
+    def put(self, id):
+        """PUT /api/pokemon/<id> - Update Pokemon by ID"""
+        pass
+
+    def delete(self, id):
+        """DELETE /api/pokemon/<id> - Delete Pokemon by ID"""
+        pass
+
+
+class PokemonSearchAPI(MethodView):
+    """GET /api/pokemon/search?q= - Search pokemon by type or name"""
+
+    pass
+
 
 # Route to serve React app - for production use
 @pokemon_api.route("/", defaults={"path": ""})
@@ -74,6 +138,19 @@ def not_found(e):
         404,
     )
 
+@pokemon_api.errorhandler(403)
+def not_found():
+    return (
+        jsonify(
+            {
+                "message": "NotAuthorized",
+                "status": "error",
+                "error": "User is not authorized",
+            }
+        ),
+        404,
+    )
+
 
 @pokemon_api.errorhandler(500)
 def server_error(e):
@@ -86,7 +163,9 @@ def server_error(e):
 
 
 pokemon_list_view = PokemonListAPI.as_view("pokemon_list_api")
-pokemon_api.add_url_rule("pokemon", view_func=pokemon_list_view, methods=["GET"])
+pokemon_api.add_url_rule(
+    "pokemon", view_func=pokemon_list_view, methods=["GET", "POST"]
+)
 
 
 # Method | Route | Description
