@@ -139,7 +139,7 @@ def not_found(e):
     )
 
 @pokemon_api.errorhandler(403)
-def not_found():
+def not_authorized():
     return (
         jsonify(
             {
