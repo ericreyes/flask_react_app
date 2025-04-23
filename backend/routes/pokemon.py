@@ -1,33 +1,21 @@
-from flask import Flask, jsonify, send_from_directory, request
-from flask_cors import CORS
-from pymongo import MongoClient
+from flask import jsonify, send_from_directory, request, Blueprint
 from marshmallow import ValidationError
 import os
 
 
 
 from bson.regex import Regex
-from backend.schemas.pokemon import pagination_schema, pokemon_schema
-from backend.db import db
+from schemas.pokemon import pagination_schema, pokemon_schema
+from db import db
 
-# Initialize Flask app
-app = Flask(__name__)
+pokemon_api = Blueprint("pokemon_api", __name__)
 
-# Enable CORS for all routes
-CORS(app)
-
-# Configuration
-
-# db init
-client = MongoClient("mongodb://localhost:27017/")
-app.config["DEBUG"] = True
-db = client["pokedex"]
 
 # In production, static files will be served from the React build folder
 REACT_BUILD_FOLDER = os.path.abspath("../../frontend/build")
 
 
-@app.route("/api/pokemon", methods=["GET"])
+@pokemon_api.route("pokemon", methods=["GET"])
 def get_all_pokemon():
     """Get all pokemon with schema validation"""
     try:
@@ -52,7 +40,7 @@ def get_all_pokemon():
                     "offset": offset,
                     "limit": limit,
                     "total_count": db.pokemon.count_documents({}),
-                }
+                },
             }
         ),
         200,
@@ -60,8 +48,8 @@ def get_all_pokemon():
 
 
 # Route to serve React app - for production use
-@app.route("/", defaults={"path": ""})
-@app.route("/<path:path>")
+@pokemon_api.route("/", defaults={"path": ""})
+@pokemon_api.route("/<path:path>")
 def serve_react(path):
     """Serve React app in production"""
     if path != "" and os.path.exists(os.path.join(REACT_BUILD_FOLDER, path)):
@@ -71,7 +59,7 @@ def serve_react(path):
 
 
 # Error handlers
-@app.errorhandler(404)
+@pokemon_api.errorhandler(404)
 def not_found(e):
     return (
         jsonify(
@@ -85,7 +73,7 @@ def not_found(e):
     )
 
 
-@app.errorhandler(500)
+@pokemon_api.errorhandler(500)
 def server_error(e):
     return (
         jsonify(
@@ -94,9 +82,6 @@ def server_error(e):
         500,
     )
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001)
 
 
 # Method | Route | Description
