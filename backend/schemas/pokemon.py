@@ -47,8 +47,13 @@ class PaginationSchema(Schema):
         required=False, validate=validate.OneOf(["name", "pokedex_number"])
     )
 
-
-# class PokemonFilterSchema(Schema):
+class PokemonSearchSchema(Schema):
+    limit = fields.Int(required=False, validate=validate.Range(min=1, max=100))
+    type = fields.Str(
+        required=False, validate=validate.OneOf(POKEMON_TYPES)
+    )
+    name = fields.Str(required=False, validate=validate.Length(min=1))
 
 pagination_schema = PaginationSchema()
 pokemon_schema = PokemonSchema()
+pokemon_search_schema = PokemonSearchSchema()
